@@ -1,0 +1,17 @@
+node_modules
+
+# Archivos subidos en desarrollo (ignorar contenido, mantener estructura)
+uploads/**/*
+!uploads/.gitkeep
+!uploads/**/.gitkeep
+
+# Variables de entorno sensibles (opcional - descomentar si es necesario)
+# .env
+
+# Logs
+*.log
+npm-debug.log*
+
+# Archivos temporales
+temp/*
+!temp/.gitkeep

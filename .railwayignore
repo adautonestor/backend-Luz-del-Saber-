@@ -1,0 +1,9 @@
+# Ignorar archivo .env local para evitar conflictos con variables de Railway
+.env
+.env.local
+.env.development
+
+# Otros archivos que no se necesitan en producción
+node_modules
+*.log
+.git

@@ -1,0 +1,1367 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model academic_areas {
+  id                     Int            @id @default(autoincrement())
+  name                   String         @unique @db.VarChar(255)
+  description            String?
+  order                  Int?
+  status                 String?        @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?      @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?      @updatedAt @db.Timestamptz(6)
+  competencies           competencies[]
+  courses                courses[]
+
+  @@index([order], map: "idx_academic_areas_orden")
+}
+
+/// Tipos de año académico (regular, vacacional, recuperación)
+model academic_year_types {
+  id                     Int              @id @default(autoincrement())
+  name                   String           @db.VarChar(100)
+  code                   String           @unique @db.VarChar(20)
+  description            String?
+  color                  String?          @db.VarChar(20)
+  icon                   String?          @db.VarChar(50)
+  order                  Int?
+  status                 String?          @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?        @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?        @updatedAt @db.Timestamptz(6)
+  academic_years         academic_years[]
+
+  @@index([status], map: "idx_academic_year_types_estado")
+  @@index([order], map: "idx_academic_year_types_orden")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model academic_calendar {
+  id                     Int            @id @default(autoincrement())
+  title                  String         @db.VarChar(255)
+  description            String?
+  start_date             DateTime       @db.Date
+  end_date               DateTime?      @db.Date
+  type                   String         @db.VarChar(20)
+  academic_year_id       Int
+  status                 String?        @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?      @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?      @updatedAt @db.Timestamptz(6)
+  academic_years         academic_years @relation(fields: [academic_year_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_academic_calendar_academic_year")
+
+  @@index([academic_year_id], map: "idx_academic_calendar_año_escolar_id")
+  @@index([start_date], map: "idx_academic_calendar_fecha_inicio")
+  @@index([type], map: "idx_academic_calendar_tipo")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model academic_years {
+  id                          Int                           @id @default(autoincrement())
+  name                        String                        @db.VarChar(255)
+  year                        Int
+  year_code                   String?                       @db.VarChar(20)
+  type                        String?                       @default("regular") @db.VarChar(20)
+  start_date                  DateTime                      @db.Date
+  end_date                    DateTime                      @db.Date
+  description                 String?
+  close_date                  DateTime?                     @db.Timestamptz(6)
+  close_reason                String?
+  close_observations          String?
+  file                        Json?
+  copy_structure              Boolean?                      @default(false)
+  status                      String?                       @default("planned") @db.VarChar(20)
+  user_id_registration        Int?
+  date_time_registration      DateTime?                     @default(now()) @db.Timestamptz(6)
+  user_id_modification        Int?
+  date_time_modification      DateTime?                     @updatedAt @db.Timestamptz(6)
+  type_id                     Int?
+  academic_calendar           academic_calendar[]
+  academic_year_types         academic_year_types?          @relation(fields: [type_id], references: [id], onUpdate: NoAction, map: "fk_academic_years_type")
+  competency_quarter_averages competency_quarter_averages[]
+  course_assignments          course_assignments[]
+  courses                     courses[]
+  evaluation_structures       evaluation_structures[]
+  grades                      grades[]
+  levels                      levels[]
+  matriculation               matriculation[]
+  parent_meetings             parent_meetings[]
+  payment_concepts            payment_concepts[]
+  report_card_visibility      report_card_visibility[]
+  sections                    sections[]
+  student_behaviors           student_behaviors[]
+  students                    students[]
+  teacher_assignments         teacher_assignments[]
+
+  @@unique([year, type], map: "uk_academic_years_año_tipo")
+  @@index([status], map: "idx_academic_years_estado")
+  @@index([start_date], map: "idx_academic_years_fecha_inicio")
+  @@index([type_id], map: "idx_academic_years_type_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model attendance_records {
+  id                                                   Int       @id @default(autoincrement())
+  student_id                                           Int
+  date                                                 DateTime  @db.Date
+  entry_time1                                          DateTime? @db.Timestamptz(6)
+  entry_status1                                        String?   @db.VarChar(20)
+  registered_by_entry1                                 Int?
+  exit_time1                                           DateTime? @db.Timestamptz(6)
+  exit_status1                                         String?   @db.VarChar(20)
+  registered_by_exit1                                  Int?
+  entry_time2                                          DateTime? @db.Timestamptz(6)
+  entry_status2                                        String?   @db.VarChar(20)
+  registered_by_entry2                                 Int?
+  exit_time2                                           DateTime? @db.Timestamptz(6)
+  exit_status2                                         String?   @db.VarChar(20)
+  registered_by_exit2                                  Int?
+  observations                                         String?
+  late_justified                                       Boolean?  @default(false)
+  late_justification                                   String?
+  justified_by                                         Int?
+  justification_date                                   DateTime? @db.Timestamptz(6)
+  registration_type                                    String?   @default("qr") @db.VarChar(20)
+  status                                               String?   @default("active") @db.VarChar(20)
+  user_id_registration                                 Int?
+  date_time_registration                               DateTime? @default(now()) @db.Timestamptz(6)
+  user_id_modification                                 Int?
+  date_time_modification                               DateTime? @db.Timestamptz(6)
+  quarter                                              Int?
+  absence_justified                                    Boolean?  @default(false)
+  users_attendance_records_justified_byTousers         users?    @relation("attendance_records_justificada_porTousers", fields: [justified_by], references: [id], onUpdate: NoAction, map: "fk_attendance_records_justificada_por")
+  users_attendance_records_registered_by_entry1Tousers users?    @relation("attendance_records_registrado_por_entrada1Tousers", fields: [registered_by_entry1], references: [id], onUpdate: NoAction, map: "fk_attendance_records_registrado_entrada1")
+  users_attendance_records_registered_by_entry2Tousers users?    @relation("attendance_records_registrado_por_entrada2Tousers", fields: [registered_by_entry2], references: [id], onUpdate: NoAction, map: "fk_attendance_records_registrado_entrada2")
+  users_attendance_records_registered_by_exit1Tousers  users?    @relation("attendance_records_registrado_por_salida1Tousers", fields: [registered_by_exit1], references: [id], onUpdate: NoAction, map: "fk_attendance_records_registrado_salida1")
+  users_attendance_records_registered_by_exit2Tousers  users?    @relation("attendance_records_registrado_por_salida2Tousers", fields: [registered_by_exit2], references: [id], onUpdate: NoAction, map: "fk_attendance_records_registrado_salida2")
+  students                                             students  @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_attendance_records_student")
+
+  @@unique([student_id, date], map: "uk_attendance_records")
+  @@index([student_id], map: "idx_attendance_records_estudiante_id")
+  @@index([date], map: "idx_attendance_records_fecha")
+  @@index([date(sort: Desc), student_id], map: "idx_attendance_records_month")
+  @@index([date, status], map: "idx_attendance_records_date_status")
+  @@index([student_id, date], map: "idx_attendance_records_student_date")
+  @@index([quarter], map: "idx_attendance_records_quarter")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model attendance_schedules {
+  id                     Int       @id @default(autoincrement())
+  entry1_start_time      DateTime  @db.Time(6)
+  entry1_limit_time      DateTime  @db.Time(6)
+  exit1_expected_time    DateTime  @db.Time(6)
+  entry2_start_time      DateTime? @db.Time(6)
+  entry2_limit_time      DateTime? @db.Time(6)
+  exit2_expected_time    DateTime? @db.Time(6)
+  tolerance_minutes      Int?      @default(15)
+  applicable_days        Json?
+  status                 String?   @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime? @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime? @updatedAt @db.Timestamptz(6)
+  level_id               Int
+  levels                 levels    @relation(fields: [level_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_attendance_schedules_level")
+
+  @@index([status], map: "idx_attendance_schedules_activo")
+  @@index([level_id], map: "idx_attendance_schedules_nivel_id")
+}
+
+model audit_logs {
+  id                     Int       @id @default(autoincrement())
+  action                 String    @db.VarChar(100)
+  entity_type            String    @db.VarChar(100)
+  entity_id              String    @db.VarChar(255)
+  changes                Json?
+  user_id                Int
+  ip_address             String?   @db.VarChar(45)
+  user_agent             String?
+  timestamp              DateTime? @default(now()) @db.Timestamptz(6)
+  status                 String?   @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime? @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime? @updatedAt @db.Timestamptz(6)
+  users                  users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_audit_logs_user")
+
+  @@index([action], map: "idx_audit_logs_action")
+  @@index([entity_id], map: "idx_audit_logs_entity_id")
+  @@index([entity_type], map: "idx_audit_logs_entity_type")
+  @@index([timestamp], map: "idx_audit_logs_timestamp")
+  @@index([user_id], map: "idx_audit_logs_user_id")
+}
+
+model announcements {
+  id                     Int       @id @default(autoincrement())
+  title                  String    @db.VarChar(255)
+  content                String
+  link                   String?
+  image                  String?
+  file                   String?
+  file_name              String?   @db.VarChar(255)
+  file_type              String?   @db.VarChar(100)
+  file_size              Int?
+  published_by           Int
+  publication_date       DateTime  @db.Timestamptz(6)
+  status                 String?   @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime? @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime? @updatedAt @db.Timestamptz(6)
+  users                  users     @relation(fields: [published_by], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_announcements_published_by")
+
+  @@index([status], map: "idx_announcements_active")
+  @@index([publication_date], map: "idx_announcements_publication_date")
+  @@index([published_by], map: "idx_announcements_published_by")
+}
+
+model capacities {
+  id                     Int          @id @default(autoincrement())
+  competency_id          Int
+  code                   String       @unique @db.VarChar(50)
+  name                   String       @db.VarChar(255)
+  description            String?
+  order                  Int?
+  status                 String?      @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?    @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?    @updatedAt @db.Timestamptz(6)
+  competencies           competencies @relation(fields: [competency_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_capacities_competency")
+
+  @@index([code], map: "idx_capacities_codigo")
+  @@index([competency_id], map: "idx_capacities_competencia_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model communications {
+  id                     Int                  @id @default(autoincrement())
+  title                  String               @db.VarChar(255)
+  content                String
+  type                   String               @db.VarChar(20)
+  sender                 Int
+  recipients             Json
+  requires_confirmation  Boolean?             @default(false)
+  priority               String?              @default("medium") @db.VarChar(20)
+  send_date              DateTime             @db.Timestamptz(6)
+  scheduled_date         DateTime?            @db.Timestamptz(6)
+  expiration_date        DateTime?            @db.Timestamptz(6)
+  attachments            Json?
+  attended               Boolean?             @default(false)
+  attended_date          DateTime?            @db.Timestamptz(6)
+  statistics             Json?
+  status                 String?              @default("draft") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?            @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?            @updatedAt @db.Timestamptz(6)
+  users                  users                @relation(fields: [sender], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_communications_remitente")
+  read_confirmations     read_confirmations[]
+
+  @@index([status], map: "idx_communications_estado")
+  @@index([send_date], map: "idx_communications_fecha_envio")
+  @@index([priority], map: "idx_communications_prioridad")
+  @@index([sender], map: "idx_communications_remitente")
+  @@index([type], map: "idx_communications_tipo")
+}
+
+model competencies {
+  id                     Int                   @id @default(autoincrement())
+  code                   String                @unique @db.VarChar(50)
+  name                   String                @db.VarChar(255)
+  description            String?
+  level_id               Int?
+  academic_area_id       Int?
+  order                  Int?
+  status                 String?               @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?             @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?             @updatedAt @db.Timestamptz(6)
+  capacities             capacities[]
+  academic_areas         academic_areas?       @relation(fields: [academic_area_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_competencies_area")
+  levels                 levels?               @relation(fields: [level_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_competencies_level")
+  course_competencies    course_competencies[]
+
+  @@index([academic_area_id], map: "idx_competencies_area_academica_id")
+  @@index([code], map: "idx_competencies_codigo")
+  @@index([level_id], map: "idx_competencies_nivel_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model competency_averages {
+  id                     Int                 @id @default(autoincrement())
+  student_id             Int
+  course_id              Int
+  course_competency_id   Int
+  annual_average         Decimal             @db.Decimal(4, 2)
+  grading_system         String              @db.VarChar(20)
+  academic_year          Int
+  status                 String?             @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?           @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?           @updatedAt @db.Timestamptz(6)
+  course_competencies    course_competencies @relation(fields: [course_competency_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_competency_averages_course_competency")
+  courses                courses             @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_competency_averages_curso")
+  students               students            @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_competency_averages_student")
+
+  @@unique([student_id, course_competency_id, academic_year], map: "uk_competency_averages")
+  @@index([academic_year], map: "idx_competency_averages_año_escolar")
+  @@index([course_competency_id], map: "idx_competency_averages_course_competency_id")
+  @@index([course_id], map: "idx_competency_averages_curso_id")
+  @@index([student_id], map: "idx_competency_averages_estudiante_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// 🆕 ACTUALIZADO: Ahora soporta tanto course_competency_id (sistema legacy) como category_id + subcategory_id (sistema evaluation_structures)
+model competency_grades {
+  id                     Int                  @id @default(autoincrement())
+  student_id             Int
+  course_id              Int
+  course_competency_id   Int?
+  category_id            String?              @db.VarChar(255)
+  subcategory_id         String?              @db.VarChar(255)
+  quarter                Int
+  value                  String               @db.VarChar(10)
+  grading_system         String               @db.VarChar(20)
+  observation            String?
+  teacher_id             Int
+  registration_date      DateTime             @db.Timestamptz(6)
+  last_modification      DateTime             @db.Timestamptz(6)
+  status                 String?              @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?            @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?            @updatedAt @db.Timestamptz(6)
+  course_competencies    course_competencies? @relation(fields: [course_competency_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_competency_grades_course_competency")
+  courses                courses              @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_competency_grades_curso")
+  users                  users                @relation(fields: [teacher_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_competency_grades_profesor")
+  students               students             @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_competency_grades_student")
+
+  @@index([quarter], map: "idx_competency_grades_bimestre")
+  @@index([course_competency_id], map: "idx_competency_grades_course_competency_id")
+  @@index([course_id], map: "idx_competency_grades_curso_id")
+  @@index([student_id], map: "idx_competency_grades_estudiante_id")
+  @@index([category_id], map: "idx_competency_grades_category_id")
+  @@index([subcategory_id], map: "idx_competency_grades_subcategory_id")
+  @@index([student_id, category_id, subcategory_id, quarter], map: "idx_competency_grades_composite")
+  @@index([course_id, quarter], map: "idx_competency_grades_course_quarter")
+  @@index([student_id, quarter], map: "idx_competency_grades_student_quarter")
+}
+
+model course_assignments {
+  id                     Int            @id @default(autoincrement())
+  course_id              Int
+  grade_id               Int
+  teacher_id             Int
+  academic_year_id       Int
+  status                 String?        @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?      @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?      @updatedAt @db.Timestamptz(6)
+  weekly_hours           Int?           @default(4)
+  section_id             Int?
+  observations           String?
+  academic_years         academic_years @relation(fields: [academic_year_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_course_assignments_academic_year")
+  courses                courses        @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_course_assignments_curso")
+  grades                 grades         @relation(fields: [grade_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_course_assignments_grado")
+  users                  users          @relation(fields: [teacher_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_course_assignments_profesor")
+  sections               sections?      @relation(fields: [section_id], references: [id], onUpdate: NoAction, map: "fk_course_assignments_section")
+
+  @@unique([course_id, grade_id, academic_year_id], map: "uk_course_assignments")
+  @@index([course_id], map: "idx_course_assignments_curso_id")
+  @@index([grade_id], map: "idx_course_assignments_grado_id")
+  @@index([teacher_id], map: "idx_course_assignments_profesor_id")
+  @@index([section_id], map: "idx_course_assignments_section_id")
+  @@index([weekly_hours], map: "idx_course_assignments_weekly_hours")
+}
+
+model course_competencies {
+  id                     Int                   @id @default(autoincrement())
+  course_id              Int
+  competency_id          Int
+  name                   String                @db.VarChar(255)
+  description            String?
+  order                  Int
+  academic_year          Int
+  status                 String?               @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?             @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?             @updatedAt @db.Timestamptz(6)
+  competency_averages    competency_averages[]
+  competency_grades      competency_grades[]
+  competencies           competencies          @relation(fields: [competency_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_course_competencies_competency")
+  courses                courses               @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_course_competencies_curso")
+
+  @@unique([course_id, competency_id, academic_year], map: "uk_course_competencies")
+  @@index([academic_year], map: "idx_course_competencies_año_escolar")
+  @@index([competency_id], map: "idx_course_competencies_competencia_id")
+  @@index([course_id], map: "idx_course_competencies_curso_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model courses {
+  id                          Int                           @id @default(autoincrement())
+  name                        String                        @db.VarChar(255)
+  code                        String                        @db.VarChar(20)
+  grade_id                    Int?
+  level_id                    Int?
+  academic_area_id            Int?
+  area                        String?                       @db.VarChar(100)
+  weekly_hours                Int?                          @default(4)
+  type                        String?                       @default("required") @db.VarChar(20)
+  description                 String?
+  objectives                  String?
+  methodology                 String?
+  resources                   String?
+  evaluation                  String?
+  teachers                    Json?
+  academic_year_id            Int?
+  status                      String?                       @default("active") @db.VarChar(20)
+  user_id_registration        Int?
+  date_time_registration      DateTime?                     @default(now()) @db.Timestamptz(6)
+  user_id_modification        Int?
+  date_time_modification      DateTime?                     @updatedAt @db.Timestamptz(6)
+  competency_averages         competency_averages[]
+  competency_grades           competency_grades[]
+  competency_quarter_averages competency_quarter_averages[]
+  course_assignments          course_assignments[]
+  course_competencies         course_competencies[]
+  academic_years              academic_years?               @relation(fields: [academic_year_id], references: [id], onUpdate: NoAction, map: "fk_courses_academic_year")
+  academic_areas              academic_areas?               @relation(fields: [academic_area_id], references: [id], onUpdate: NoAction, map: "fk_courses_area")
+  grades                      grades?                       @relation(fields: [grade_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_courses_grade")
+  levels                      levels?                       @relation(fields: [level_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_courses_level")
+  evaluation_structures       evaluation_structures[]
+  quarter_averages            quarter_averages[]
+  schedules                   schedules[]
+  teacher_assignments         teacher_assignments[]
+
+  @@index([academic_area_id], map: "idx_courses_area_academica_id")
+  @@index([status], map: "idx_courses_estado")
+  @@index([grade_id], map: "idx_courses_grado_id")
+  @@index([level_id], map: "idx_courses_nivel_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model discount_configs {
+  id                     Int       @id @default(autoincrement())
+  children_quantity      Int
+  level                  String    @db.VarChar(20)
+  discount_percentage    Decimal   @db.Decimal(5, 2)
+  description            String?
+  academic_year          Int
+  status                 String?   @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime? @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime? @updatedAt @db.Timestamptz(6)
+
+  @@unique([children_quantity, level, academic_year], map: "uk_discount_configs")
+  @@index([academic_year], map: "idx_discount_configs_año_escolar")
+  @@index([status], map: "idx_discount_configs_estado")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model documents {
+  id                     Int       @id @default(autoincrement())
+  title                  String    @db.VarChar(255)
+  description            String?
+  type                   String    @db.VarChar(20)
+  category               String?   @db.VarChar(100)
+  file_url               String
+  file_name              String    @db.VarChar(255)
+  file_type              String?   @db.VarChar(100)
+  file_size              Int?
+  visible_to             String?   @default("all") @db.VarChar(20)
+  uploaded_by            Int
+  upload_date            DateTime  @db.Timestamptz(6)
+  status                 String?   @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime? @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime? @updatedAt @db.Timestamptz(6)
+  users                  users     @relation(fields: [uploaded_by], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_documents_subido_por")
+
+  @@index([status], map: "idx_documents_activo")
+  @@index([upload_date], map: "idx_documents_fecha_subida")
+  @@index([type], map: "idx_documents_tipo")
+  @@index([visible_to], map: "idx_documents_visible_para")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model evaluation_structures {
+  id                     Int            @id @default(autoincrement())
+  grade_id               Int
+  course_id              Int
+  teacher_id             Int?
+  quarter                Int
+  categories             Json?
+  competencies           Json?
+  academic_year          Int
+  academic_year_id       Int
+  grading_system         String         @db.VarChar(20)
+  status                 String?        @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?      @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?      @updatedAt @db.Timestamptz(6)
+  academic_years         academic_years @relation(fields: [academic_year_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_evaluation_structures_academic_year")
+  courses                courses        @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_evaluation_structures_curso")
+  grades                 grades         @relation(fields: [grade_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_evaluation_structures_grado")
+  users                  users?         @relation(fields: [teacher_id], references: [id], onUpdate: NoAction, map: "fk_evaluation_structures_profesor")
+
+  @@unique([grade_id, course_id, quarter, academic_year_id, status], map: "uk_evaluation_structures_academic_year_id")
+  @@index([academic_year], map: "idx_evaluation_structures_año_escolar")
+  @@index([quarter], map: "idx_evaluation_structures_bimestre")
+  @@index([course_id], map: "idx_evaluation_structures_curso_id")
+  @@index([grade_id], map: "idx_evaluation_structures_grado_id")
+  @@index([course_id, grade_id, academic_year_id, status], map: "idx_evaluation_structures_sync")
+}
+
+model grades {
+  id                     Int                      @id @default(autoincrement())
+  level_id               Int
+  name                   String                   @db.VarChar(100)
+  code                   String                   @db.VarChar(20)
+  description            String?
+  order                  Int
+  courses_json           Json?
+  academic_year_id       Int?
+  status                 String?                  @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?                @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?                @updatedAt @db.Timestamptz(6)
+  course_assignments     course_assignments[]
+  courses                courses[]
+  evaluation_structures  evaluation_structures[]
+  academic_years         academic_years?          @relation(fields: [academic_year_id], references: [id], onUpdate: NoAction, map: "fk_grades_academic_year")
+  levels                 levels                   @relation(fields: [level_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_grades_level")
+  matriculation          matriculation[]
+  parent_meetings        parent_meetings[]
+  report_card_visibility report_card_visibility[]
+  schedule_images        schedule_images[]
+  schedules              schedules[]
+  sections               sections[]
+  students               students[]
+  teacher_assignments    teacher_assignments[]
+
+  @@index([academic_year_id], map: "idx_grades_año_escolar_id")
+  @@index([status], map: "idx_grades_estado")
+  @@index([level_id], map: "idx_grades_nivel_id")
+  @@index([order], map: "idx_grades_orden")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model levels {
+  id                     Int                      @id @default(autoincrement())
+  name                   String                   @db.VarChar(50)
+  code                   String                   @db.VarChar(10)
+  description            String?
+  order                  Int
+  academic_year_id       Int?
+  status                 String?                  @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?                @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?                @updatedAt @db.Timestamptz(6)
+  attendance_schedules   attendance_schedules[]
+  competencies           competencies[]
+  courses                courses[]
+  grades                 grades[]
+  academic_years         academic_years?          @relation(fields: [academic_year_id], references: [id], onUpdate: NoAction, map: "fk_levels_academic_year")
+  matriculation          matriculation[]
+  parent_meetings        parent_meetings[]
+  report_card_visibility report_card_visibility[]
+  schedule_images        schedule_images[]
+  schedules              schedules[]
+  students               students[]
+
+  @@unique([name, academic_year_id], map: "uk_levels_nombre_año")
+  @@index([status], map: "idx_levels_estado")
+  @@index([order], map: "idx_levels_orden")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model matriculation {
+  id                     Int            @id @default(autoincrement())
+  student_id             Int
+  academic_year_id       Int
+  level_id               Int
+  grade_id               Int
+  section_id             Int
+  enrollment_date        DateTime       @db.Date
+  observations           String?
+  contract_file_path     String?        @db.VarChar(500)
+  status                 String?        @default("pending") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?      @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?      @updatedAt @db.Timestamptz(6)
+  academic_years         academic_years @relation(fields: [academic_year_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_matriculation_academic_year")
+  grades                 grades         @relation(fields: [grade_id], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "fk_matriculation_grade")
+  levels                 levels         @relation(fields: [level_id], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "fk_matriculation_level")
+  sections               sections       @relation(fields: [section_id], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "fk_matriculation_section")
+  students               students       @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_matriculation_student")
+
+  @@unique([student_id, academic_year_id], map: "uk_matriculation_student_academic_year_id")
+  @@index([status], map: "idx_matriculation_estado")
+  @@index([student_id], map: "idx_matriculation_estudiante_id")
+  @@index([grade_id], map: "idx_matriculation_grado_id")
+  @@index([level_id], map: "idx_matriculation_nivel_id")
+  @@index([section_id], map: "idx_matriculation_seccion_id")
+  @@index([academic_year_id, level_id], map: "idx_matriculation_academic_year_level")
+  @@index([academic_year_id, level_id, status], map: "idx_matriculation_academic_year_level_status")
+  @@index([grade_id, section_id, academic_year_id], map: "idx_matriculation_grade_section_year")
+  @@index([status, academic_year_id], map: "idx_matriculation_status_year")
+}
+
+model meeting_attendances {
+  id                     Int             @id @default(autoincrement())
+  meeting_id             Int
+  user_id                Int
+  student_id             Int?
+  attended               Boolean
+  observations           String?
+  registered_by          Int
+  status                 String?         @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?       @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?       @updatedAt @db.Timestamptz(6)
+  students               students?       @relation(fields: [student_id], references: [id], onUpdate: NoAction, map: "fk_meeting_attendances_estudiante")
+  users_registered       users           @relation("meeting_attendances_registrado", fields: [registered_by], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_meeting_attendances_registrado_por")
+  parent_meetings        parent_meetings @relation(fields: [meeting_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_meeting_attendances_reunion")
+  users_attendee         users           @relation("meeting_attendances_user", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_meeting_attendances_user")
+
+  @@unique([meeting_id, user_id, student_id], map: "uk_meeting_attendances")
+  @@index([student_id], map: "idx_meeting_attendances_estudiante_id")
+  @@index([user_id], map: "idx_meeting_attendances_user_id")
+  @@index([meeting_id], map: "idx_meeting_attendances_reunion_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model parent_meetings {
+  id                     Int                   @id @default(autoincrement())
+  title                  String                @db.VarChar(255)
+  description            String?
+  date                   DateTime              @db.Date
+  time                   DateTime?             @db.Time(6)
+  place                  String?               @db.VarChar(255)
+  academic_year          Int
+  academic_year_id       Int?
+  scope                  String                @db.VarChar(20)
+  level_id               Int?
+  grade_id               Int?
+  section_id             Int?
+  convened_by            Int
+  status                 String?               @default("scheduled") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?             @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?             @updatedAt @db.Timestamptz(6)
+  meeting_attendances    meeting_attendances[]
+  academic_years         academic_years?       @relation(fields: [academic_year_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_parent_meetings_academic_year")
+  users                  users                 @relation(fields: [convened_by], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_parent_meetings_convocada_por")
+  grades                 grades?               @relation(fields: [grade_id], references: [id], onUpdate: NoAction, map: "fk_parent_meetings_grade")
+  levels                 levels?               @relation(fields: [level_id], references: [id], onUpdate: NoAction, map: "fk_parent_meetings_level")
+  sections               sections?             @relation(fields: [section_id], references: [id], onUpdate: NoAction, map: "fk_parent_meetings_section")
+
+  @@index([scope], map: "idx_parent_meetings_alcance")
+  @@index([academic_year], map: "idx_parent_meetings_año_escolar")
+  @@index([status], map: "idx_parent_meetings_estado")
+  @@index([date], map: "idx_parent_meetings_fecha")
+  @@index([grade_id], map: "idx_parent_meetings_grado_id")
+  @@index([level_id], map: "idx_parent_meetings_nivel_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model payment_concepts {
+  id                     Int                   @id @default(autoincrement())
+  name                   String                @db.VarChar(255)
+  description            String?
+  type                   String                @db.VarChar(20)
+  amount                 Decimal               @db.Decimal(10, 2)
+  frequency              String?               @db.VarChar(20)
+  due_day                Int?
+  applies_to_all         Boolean?              @default(true)
+  levels                 Json?
+  applicable_months      Json?
+  specific_students      Json?
+  excluded_students      Json?
+  unique_payment_date    DateTime?             @db.Date
+  academic_year_id       Int
+  status                 String?               @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?             @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?             @db.Timestamptz(6)
+  academic_years         academic_years        @relation(fields: [academic_year_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_payment_concepts_academic_year")
+  payment_obligations    payment_obligations[]
+  payment_records        payment_records[]
+
+  @@index([academic_year_id], map: "idx_payment_concepts_año_escolar_id")
+  @@index([status], map: "idx_payment_concepts_estado")
+  @@index([type], map: "idx_payment_concepts_tipo")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model payment_intentions {
+  id                     Int                 @id @default(autoincrement())
+  obligation_id          Int
+  student_id             Int
+  user_id                Int
+  amount                 Decimal             @db.Decimal(10, 2)
+  payment_method         String              @db.VarChar(50)
+  operation_number       String              @unique(map: "idx_payment_intentions_numero_operacion") @db.VarChar(100)
+  observations           String?
+  voucher                String?
+  rejection_reason       String?
+  payment_date           DateTime            @db.Timestamptz(6)
+  registration_date      DateTime            @db.Timestamptz(6)
+  status                 String?             @default("pending") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?           @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?           @updatedAt @db.Timestamptz(6)
+  payment_obligations    payment_obligations @relation(fields: [obligation_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_payment_intentions_obligation")
+  students               students            @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_payment_intentions_student")
+  users                  users               @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_payment_intentions_user")
+
+  @@index([status], map: "idx_payment_intentions_estado")
+  @@index([student_id], map: "idx_payment_intentions_estudiante_id")
+  @@index([obligation_id], map: "idx_payment_intentions_obligacion_id")
+  @@index([user_id], map: "idx_payment_intentions_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model payment_methods {
+  id                     Int       @id @default(autoincrement())
+  type                   String    @db.VarChar(20)
+  name                   String    @db.VarChar(255)
+  phone_number           String?   @db.VarChar(20)
+  qr_code                String?
+  bank                   String?   @db.VarChar(100)
+  account_number         String?   @db.VarChar(50)
+  cci                    String?   @db.VarChar(50)
+  holder                 String?   @db.VarChar(255)
+  instructions           String
+  status                 String?   @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime? @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime? @updatedAt @db.Timestamptz(6)
+
+  @@index([status], map: "idx_payment_methods_estado")
+  @@index([type], map: "idx_payment_methods_tipo")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model payment_obligations {
+  id                     Int                  @id @default(autoincrement())
+  student_id             Int
+  concept_id             Int
+  academic_year          Int
+  due_month              Int?
+  due_date               DateTime             @db.Date
+  total_amount           Decimal              @db.Decimal(10, 2)
+  paid_amount            Decimal?             @default(0) @db.Decimal(10, 2)
+  pending_balance        Decimal              @db.Decimal(10, 2)
+  generation_date        DateTime             @db.Timestamptz(6)
+  last_payment_date      DateTime?            @db.Timestamptz(6)
+  alerts_sent            Json?
+  status                 String?              @default("pending") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?            @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?            @updatedAt @db.Timestamptz(6)
+  payment_intentions     payment_intentions[]
+  payment_concepts       payment_concepts     @relation(fields: [concept_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_payment_obligations_concepto")
+  students               students             @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_payment_obligations_student")
+  payment_records        payment_records[]
+
+  @@unique([student_id, concept_id, academic_year, due_month], map: "uk_payment_obligations")
+  @@index([academic_year], map: "idx_payment_obligations_año_escolar")
+  @@index([concept_id], map: "idx_payment_obligations_concepto_id")
+  @@index([status], map: "idx_payment_obligations_estado")
+  @@index([student_id], map: "idx_payment_obligations_estudiante_id")
+  @@index([due_date], map: "idx_payment_obligations_fecha_vencimiento")
+  @@index([due_month], map: "idx_payment_obligations_mes_vencimiento")
+  @@index([concept_id, academic_year, status], map: "idx_payment_obligations_concept_year_status")
+  @@index([student_id, academic_year, status], map: "idx_payment_obligations_student_year_status")
+  @@index([academic_year, due_month, status], map: "idx_payment_obligations_year_month_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model payment_records {
+  id                     Int                 @id @default(autoincrement())
+  obligation_id          Int
+  student_id             Int
+  concept_id             Int
+  total_amount           Decimal             @db.Decimal(10, 2)
+  paid_amount            Decimal             @db.Decimal(10, 2)
+  pending_balance        Decimal             @db.Decimal(10, 2)
+  payments               Json?
+  status                 String?             @default("pending") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?           @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?           @updatedAt @db.Timestamptz(6)
+  payment_concepts       payment_concepts    @relation(fields: [concept_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_payment_records_concepto")
+  payment_obligations    payment_obligations @relation(fields: [obligation_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_payment_records_obligation")
+  students               students            @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_payment_records_student")
+
+  @@index([concept_id], map: "idx_payment_records_concepto_id")
+  @@index([status], map: "idx_payment_records_estado")
+  @@index([student_id], map: "idx_payment_records_estudiante_id")
+  @@index([obligation_id], map: "idx_payment_records_obligacion_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model payment_commitments {
+  id                     Int       @id @default(autoincrement())
+  user_id                Int
+  students               Json
+  months                 Json
+  academic_year          Int
+  commitment_date        DateTime  @db.Timestamptz(6)
+  observations           String?
+  status                 String?   @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime? @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime? @updatedAt @db.Timestamptz(6)
+  users                  users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_payment_commitments_user")
+
+  @@index([user_id], map: "idx_payment_commitments_user_id")
+  @@index([academic_year], map: "idx_payment_commitments_año_escolar")
+  @@index([status], map: "idx_payment_commitments_estado")
+  @@index([commitment_date], map: "idx_payment_commitments_fecha_compromiso")
+}
+
+model permissions {
+  id                     Int                 @id @default(autoincrement())
+  name                   String              @unique @db.VarChar(100)
+  description            String?
+  module                 String?             @db.VarChar(50)
+  action                 String?             @db.VarChar(50)
+  status                 String?             @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?           @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?           @updatedAt @db.Timestamptz(6)
+  roles_permissions      roles_permissions[]
+}
+
+model psychological_reports {
+  id                     Int       @id @default(autoincrement())
+  student_id             Int
+  academic_year          String    @db.VarChar(10)
+  issue_date             DateTime  @db.Date
+  file_name              String    @db.VarChar(255)
+  file_url               String
+  file_base64            String?
+  file_size              Int?
+  observations           String?
+  uploaded_by            Int
+  upload_date            DateTime  @db.Timestamptz(6)
+  status                 String?   @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime? @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime? @updatedAt @db.Timestamptz(6)
+  students               students  @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_psychological_reports_student")
+  users                  users     @relation(fields: [uploaded_by], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_psychological_reports_subido_por")
+
+  @@index([status], map: "idx_psychological_reports_activo")
+  @@index([academic_year], map: "idx_psychological_reports_año_lectivo")
+  @@index([student_id], map: "idx_psychological_reports_estudiante_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model quarter_averages {
+  id                     Int       @id @default(autoincrement())
+  student_id             Int
+  course_id              Int
+  quarter                Int
+  partial_average        Decimal   @db.Decimal(4, 2)
+  cumulative_average     Decimal   @db.Decimal(4, 2)
+  calculation_detail     Json?
+  academic_year          Int
+  status                 String?   @default("approved") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime? @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime? @updatedAt @db.Timestamptz(6)
+  courses                courses   @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_quarter_averages_curso")
+  students               students  @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_quarter_averages_student")
+
+  @@unique([student_id, course_id, quarter, academic_year], map: "uk_quarter_averages")
+  @@index([academic_year], map: "idx_quarter_averages_año_escolar")
+  @@index([quarter], map: "idx_quarter_averages_bimestre")
+  @@index([course_id], map: "idx_quarter_averages_curso_id")
+  @@index([student_id], map: "idx_quarter_averages_estudiante_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model read_confirmations {
+  id                     Int            @id @default(autoincrement())
+  communication_id       Int
+  user_id                Int
+  send_date              DateTime       @db.Timestamptz(6)
+  read_date              DateTime?      @db.Timestamptz(6)
+  confirmation_date      DateTime?      @db.Timestamptz(6)
+  ip_address             String?        @db.VarChar(45)
+  device                 String?
+  status                 String?        @default("sent") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?      @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?      @updatedAt @db.Timestamptz(6)
+  communications         communications @relation(fields: [communication_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_read_confirmations_comunicado")
+  users                  users          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_read_confirmations_usuario")
+
+  @@unique([communication_id, user_id], map: "uk_read_confirmations")
+  @@index([communication_id], map: "idx_read_confirmations_comunicado_id")
+  @@index([status], map: "idx_read_confirmations_estado")
+  @@index([user_id], map: "idx_read_confirmations_usuario_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model report_card_visibility {
+  id                     Int            @id @default(autoincrement())
+  academic_year_id       Int
+  quarter                Int
+  level_id               Int?
+  grade_id               Int?
+  visible                Boolean
+  authorization_date     DateTime?      @db.Timestamptz(6)
+  authorized_by          Int?
+  observations           String?
+  status                 String?        @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?      @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?      @updatedAt @db.Timestamptz(6)
+  academic_years         academic_years @relation(fields: [academic_year_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_report_card_visibility_academic_year")
+  users                  users?         @relation(fields: [authorized_by], references: [id], onUpdate: NoAction, map: "fk_report_card_visibility_autorizado_por")
+  grades                 grades?        @relation(fields: [grade_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_report_card_visibility_grade")
+  levels                 levels?        @relation(fields: [level_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_report_card_visibility_level")
+
+  @@unique([academic_year_id, quarter, level_id, grade_id], map: "uk_report_card_visibility")
+  @@index([academic_year_id], map: "idx_report_card_visibility_año_lectivo_id")
+  @@index([quarter], map: "idx_report_card_visibility_bimestre")
+  @@index([grade_id], map: "idx_report_card_visibility_grado_id")
+  @@index([level_id], map: "idx_report_card_visibility_nivel_id")
+}
+
+model roles {
+  id                     Int                 @id @default(autoincrement())
+  name                   String              @unique @db.VarChar(50)
+  description            String?
+  status                 String?             @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?           @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?           @updatedAt @db.Timestamptz(6)
+  roles_permissions      roles_permissions[]
+  users                  users[]
+}
+
+model roles_permissions {
+  id                     Int         @id @default(autoincrement())
+  role_id                Int
+  permission_id          Int
+  status                 String?     @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?   @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?   @updatedAt @db.Timestamptz(6)
+  permissions            permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_roles_permissions_permission")
+  roles                  roles       @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_roles_permissions_role")
+
+  @@unique([role_id, permission_id], map: "uk_roles_permissions")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model schedule_images {
+  id                                       Int       @id @default(autoincrement())
+  title                                    String    @db.VarChar(255)
+  description                              String?
+  type                                     String    @db.VarChar(20)
+  level_id                                 Int?
+  grade_id                                 Int?
+  section_id                               Int?
+  teacher_id                               Int?
+  file_name                                String    @db.VarChar(255)
+  file_size                                Int
+  file_type                                String    @db.VarChar(100)
+  image_data                               String
+  upload_date                              DateTime  @default(now()) @db.Timestamptz(6)
+  uploaded_by                              Int
+  status                                   String?   @default("active") @db.VarChar(20)
+  user_id_registration                     Int?
+  date_time_registration                   DateTime? @default(now()) @db.Timestamptz(6)
+  user_id_modification                     Int?
+  date_time_modification                   DateTime? @db.Timestamptz(6)
+  file_path                                String?   @db.VarChar(500)
+  grades                                   grades?   @relation(fields: [grade_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_schedule_images_grado")
+  levels                                   levels?   @relation(fields: [level_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_schedule_images_nivel")
+  users_schedule_images_teacher_idTousers  users?    @relation("schedule_images_profesor_idTousers", fields: [teacher_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_schedule_images_profesor")
+  sections                                 sections? @relation(fields: [section_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_schedule_images_seccion")
+  users_schedule_images_uploaded_byTousers users     @relation("schedule_images_uploaded_byTousers", fields: [uploaded_by], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_schedule_images_uploaded_by")
+
+  @@index([level_id], map: "idx_schedule_images_nivel_id")
+  @@index([type], map: "idx_schedule_images_tipo")
+  @@index([upload_date], map: "idx_schedule_images_upload_date")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model schedules {
+  id                     Int       @id @default(autoincrement())
+  level_id               Int
+  grade_id               Int
+  section_id             Int
+  course_id              Int
+  teacher_id             Int
+  day                    Int
+  start_time             DateTime  @db.Time(6)
+  end_time               DateTime  @db.Time(6)
+  classroom              String?   @db.VarChar(50)
+  observations           String?
+  status                 String?   @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime? @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime? @updatedAt @db.Timestamptz(6)
+  courses                courses   @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_schedules_course")
+  grades                 grades    @relation(fields: [grade_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_schedules_grade")
+  levels                 levels    @relation(fields: [level_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_schedules_level")
+  users                  users     @relation(fields: [teacher_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_schedules_profesor")
+  sections               sections  @relation(fields: [section_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_schedules_section")
+
+  @@unique([grade_id, section_id, day, start_time], map: "uk_schedules")
+  @@index([course_id], map: "idx_schedules_curso_id")
+  @@index([day], map: "idx_schedules_dia")
+  @@index([grade_id], map: "idx_schedules_grado_id")
+  @@index([level_id], map: "idx_schedules_nivel_id")
+  @@index([teacher_id], map: "idx_schedules_profesor_id")
+  @@index([section_id], map: "idx_schedules_seccion_id")
+}
+
+model sections {
+  id                     Int                  @id @default(autoincrement())
+  grade_id               Int
+  name                   String               @db.VarChar(5)
+  capacity               Int?                 @default(30)
+  tutor_id               Int?
+  shift                  String?              @default("mañana") @db.VarChar(20)
+  students               Json?
+  academic_year          Int
+  academic_year_id       Int?
+  status                 String?              @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?            @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?            @updatedAt @db.Timestamptz(6)
+  course_assignments     course_assignments[]
+  matriculation          matriculation[]
+  parent_meetings        parent_meetings[]
+  schedule_images        schedule_images[]
+  schedules              schedules[]
+  academic_years         academic_years?      @relation(fields: [academic_year_id], references: [id], onUpdate: NoAction, map: "fk_sections_academic_year")
+  grades                 grades               @relation(fields: [grade_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_sections_grade")
+  users                  users?               @relation(fields: [tutor_id], references: [id], onUpdate: NoAction, map: "fk_sections_tutor")
+  students_relation      students[]
+
+  @@unique([grade_id, name, academic_year], map: "uk_sections_grado_nombre_año")
+  @@index([academic_year], map: "idx_sections_año_escolar")
+  @@index([grade_id], map: "idx_sections_grado_id")
+}
+
+model sessions {
+  id                     Int       @id @default(autoincrement())
+  user_id                Int
+  token                  String
+  expires_at             DateTime  @db.Timestamptz(6)
+  ip_address             String?   @db.VarChar(45)
+  user_agent             String?
+  status                 String?   @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime? @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime? @updatedAt @db.Timestamptz(6)
+  users                  users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_sessions_user")
+
+  @@index([expires_at], map: "idx_sessions_expires_at")
+  @@index([token], map: "idx_sessions_token")
+  @@index([user_id], map: "idx_sessions_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model student_behaviors {
+  id                     Int             @id @default(autoincrement())
+  student_id             Int
+  quarter                Int
+  academic_year          Int
+  academic_year_id       Int?
+  discipline             String?         @db.VarChar(10)
+  parent_rating          String?         @db.VarChar(10)
+  comments               String?
+  grading_system         String          @db.VarChar(20)
+  registered_by          Int
+  status                 String?         @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?       @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?       @updatedAt @db.Timestamptz(6)
+  academic_years         academic_years? @relation(fields: [academic_year_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_student_behaviors_academic_year")
+  users                  users           @relation(fields: [registered_by], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_student_behaviors_registrado_por")
+  students               students        @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_student_behaviors_student")
+
+  @@unique([student_id, quarter, academic_year], map: "uk_student_behaviors")
+  @@index([academic_year], map: "idx_student_behaviors_año_escolar")
+  @@index([quarter], map: "idx_student_behaviors_bimestre")
+  @@index([student_id], map: "idx_student_behaviors_estudiante_id")
+}
+
+model student_qr_codes {
+  id                     Int       @id @default(autoincrement())
+  student_id             Int
+  qr_code                String    @unique(map: "idx_student_qr_codes_qr_code") @db.VarChar(255)
+  generation_date        DateTime  @db.Timestamptz(6)
+  generated_by           Int
+  status                 String?   @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime? @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime? @updatedAt @db.Timestamptz(6)
+  users                  users     @relation(fields: [generated_by], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_student_qr_codes_generado_por")
+  students               students  @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_student_qr_codes_student")
+
+  @@index([student_id], map: "idx_student_qr_codes_estudiante_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model students {
+  id                          Int                           @id @default(autoincrement())
+  code                        String                        @unique @db.VarChar(50)
+  barcode                     String                        @unique @db.VarChar(255)
+  first_names                 String                        @db.VarChar(255)
+  last_names                  String                        @db.VarChar(255)
+  paternal_last_name          String?                       @db.VarChar(100)
+  maternal_last_name          String?                       @db.VarChar(100)
+  dni                         String                        @unique @db.VarChar(12)
+  document_type               String?                       @default("DNI") @db.VarChar(10)
+  birth_date                  DateTime                      @db.Date
+  gender                      String                        @db.VarChar(1)
+  address                     String
+  phone                       String?                       @db.VarChar(20)
+  level_id                    Int?
+  grade_id                    Int?
+  section_id                  Int?
+  academic_year_id            Int?
+  enrollment_date             DateTime?                     @db.Date
+  has_double_shift            Boolean?                      @default(false)
+  parents                     Json?
+  attached_contract           Json?
+  status                      String?                       @default("active") @db.VarChar(20)
+  user_id_registration        Int?
+  date_time_registration      DateTime?                     @default(now()) @db.Timestamptz(6)
+  user_id_modification        Int?
+  date_time_modification      DateTime?                     @db.Timestamptz(6)
+  attendance_records          attendance_records[]
+  competency_averages         competency_averages[]
+  competency_grades           competency_grades[]
+  competency_quarter_averages competency_quarter_averages[]
+  matriculation               matriculation[]
+  meeting_attendances         meeting_attendances[]
+  payment_intentions          payment_intentions[]
+  payment_obligations         payment_obligations[]
+  payment_records             payment_records[]
+  psychological_reports       psychological_reports[]
+  quarter_averages            quarter_averages[]
+  student_behaviors           student_behaviors[]
+  student_qr_codes            student_qr_codes[]
+  academic_years              academic_years?               @relation(fields: [academic_year_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "fk_students_academic_year")
+  grades                      grades?                       @relation(fields: [grade_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "fk_students_grade")
+  levels                      levels?                       @relation(fields: [level_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "fk_students_level")
+  sections                    sections?                     @relation(fields: [section_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "fk_students_section")
+
+  @@index([academic_year_id], map: "idx_students_año_escolar_id")
+  @@index([code], map: "idx_students_codigo")
+  @@index([barcode], map: "idx_students_codigo_barras")
+  @@index([dni], map: "idx_students_dni")
+  @@index([status], map: "idx_students_estado")
+  @@index([last_names, first_names], map: "idx_students_full_name")
+  @@index([grade_id], map: "idx_students_grado_id")
+  @@index([level_id], map: "idx_students_nivel_id")
+  @@index([section_id], map: "idx_students_seccion_id")
+}
+
+model system_settings {
+  id                     Int       @id @default(autoincrement())
+  key                    String    @unique(map: "idx_system_settings_key") @db.VarChar(100)
+  value                  Json
+  status                 String?   @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime? @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime? @updatedAt @db.Timestamptz(6)
+}
+
+model teacher_assignments {
+  id                     Int             @id @default(autoincrement())
+  teacher_id             Int
+  course_id              Int
+  grade_id               Int
+  section_ids            Json?
+  academic_year          Int
+  academic_year_id       Int?
+  status                 String?         @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime?       @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime?       @updatedAt @db.Timestamptz(6)
+  academic_years         academic_years? @relation(fields: [academic_year_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_teacher_assignments_academic_year")
+  courses                courses         @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_teacher_assignments_curso")
+  grades                 grades          @relation(fields: [grade_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_teacher_assignments_grado")
+  users                  users           @relation(fields: [teacher_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_teacher_assignments_profesor")
+
+  @@unique([teacher_id, course_id, grade_id, academic_year], map: "uk_teacher_assignments")
+  @@index([academic_year], map: "idx_teacher_assignments_año_escolar")
+  @@index([course_id], map: "idx_teacher_assignments_curso_id")
+  @@index([grade_id], map: "idx_teacher_assignments_grado_id")
+  @@index([teacher_id], map: "idx_teacher_assignments_profesor_id")
+}
+
+model teacher_tasks {
+  id                     Int       @id @default(autoincrement())
+  teacher_id             Int
+  description            String
+  completed              Boolean?  @default(false)
+  status                 String?   @default("active") @db.VarChar(20)
+  user_id_registration   Int?
+  date_time_registration DateTime? @default(now()) @db.Timestamptz(6)
+  user_id_modification   Int?
+  date_time_modification DateTime? @updatedAt @db.Timestamptz(6)
+  users                  users     @relation(fields: [teacher_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_teacher_tasks_teacher")
+
+  @@index([completed], map: "idx_teacher_tasks_completed")
+  @@index([teacher_id], map: "idx_teacher_tasks_teacher_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model users {
+  id                                                                Int                      @id @default(autoincrement())
+  email                                                             String                   @unique @db.VarChar(255)
+  password                                                          String                   @db.VarChar(255)
+  first_name                                                        String                   @db.VarChar(255)
+  last_names                                                        String?                  @db.VarChar(255)
+  dni                                                               String                   @unique @db.VarChar(12)
+  document_type                                                     String?                  @default("DNI") @db.VarChar(10)
+  role_id                                                           Int
+  relationship                                                      String?                  @db.VarChar(50)
+  phone                                                             String?                  @db.VarChar(20)
+  address                                                           String?
+  specialty                                                         String?                  @db.VarChar(100)
+  level                                                             String?                  @db.VarChar(50)
+  entry_date                                                        DateTime?                @db.Date
+  last_login                                                        DateTime?                @db.Timestamptz(6)
+  status                                                            String?                  @default("active") @db.VarChar(20)
+  user_id_registration                                              Int?
+  date_time_registration                                            DateTime?                @default(now()) @db.Timestamptz(6)
+  user_id_modification                                              Int?
+  date_time_modification                                            DateTime?                @db.Timestamptz(6)
+  birth_date                                                        DateTime?                @db.Date
+  gender                                                            String?                  @db.VarChar(1)
+  marital_status                                                    String?                  @db.VarChar(20)
+  nationality                                                       String?                  @db.VarChar(50)
+  occupation                                                        String?                  @db.VarChar(100)
+  company                                                           String?                  @db.VarChar(100)
+  work_phone                                                        String?                  @db.VarChar(20)
+  secondary_email                                                   String?                  @db.VarChar(255)
+  district                                                          String?                  @db.VarChar(100)
+  province                                                          String?                  @db.VarChar(100)
+  department                                                        String?                  @db.VarChar(100)
+  postal_code                                                       String?                  @db.VarChar(10)
+  emergency_contact_name                                            String?                  @db.VarChar(255)
+  emergency_contact_relationship                                    String?                  @db.VarChar(50)
+  emergency_contact_phone                                           String?                  @db.VarChar(20)
+  emergency_contact_address                                         String?
+  announcements                                                     announcements[]
+  attendance_records_attendance_records_justified_byTousers         attendance_records[]     @relation("attendance_records_justificada_porTousers")
+  attendance_records_attendance_records_registered_by_entry1Tousers attendance_records[]     @relation("attendance_records_registrado_por_entrada1Tousers")
+  attendance_records_attendance_records_registered_by_entry2Tousers attendance_records[]     @relation("attendance_records_registrado_por_entrada2Tousers")
+  attendance_records_attendance_records_registered_by_exit1Tousers  attendance_records[]     @relation("attendance_records_registrado_por_salida1Tousers")
+  attendance_records_attendance_records_registered_by_exit2Tousers  attendance_records[]     @relation("attendance_records_registrado_por_salida2Tousers")
+  audit_logs                                                        audit_logs[]
+  communications                                                    communications[]
+  competency_grades                                                 competency_grades[]
+  course_assignments                                                course_assignments[]
+  documents                                                         documents[]
+  evaluation_structures                                             evaluation_structures[]
+  meeting_attendances_registered                                    meeting_attendances[]    @relation("meeting_attendances_registrado")
+  meeting_attendances_user                                          meeting_attendances[]    @relation("meeting_attendances_user")
+  parent_meetings                                                   parent_meetings[]
+  payment_commitments                                               payment_commitments[]
+  payment_intentions                                                payment_intentions[]
+  psychological_reports                                             psychological_reports[]
+  read_confirmations                                                read_confirmations[]
+  report_card_visibility                                            report_card_visibility[]
+  schedule_images_schedule_images_teacher_idTousers                 schedule_images[]        @relation("schedule_images_profesor_idTousers")
+  schedule_images_schedule_images_uploaded_byTousers                schedule_images[]        @relation("schedule_images_uploaded_byTousers")
+  schedules                                                         schedules[]
+  sections                                                          sections[]
+  sessions                                                          sessions[]
+  student_behaviors                                                 student_behaviors[]
+  student_qr_codes                                                  student_qr_codes[]
+  teacher_assignments                                               teacher_assignments[]
+  teacher_tasks                                                     teacher_tasks[]
+  roles                                                             roles                    @relation(fields: [role_id], references: [id], onUpdate: NoAction, map: "fk_users_role")
+
+  @@index([dni], map: "idx_users_dni")
+  @@index([email], map: "idx_users_email")
+  @@index([status], map: "idx_users_estado")
+  @@index([role_id], map: "idx_users_role_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model competency_quarter_averages {
+  id                  Int            @id @default(autoincrement())
+  student_id          Int
+  course_id           Int
+  category_id         String         @db.VarChar(255)
+  quarter             Int
+  average_value       Decimal        @db.Decimal(5, 2)
+  academic_year_id    Int
+  grading_system      String         @db.VarChar(20)
+  calculation_details Json?
+  status              String?        @default("active") @db.VarChar(20)
+  created_at          DateTime?      @default(now()) @db.Timestamp(6)
+  updated_at          DateTime?      @default(now()) @db.Timestamp(6)
+  academic_years      academic_years @relation(fields: [academic_year_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  courses             courses        @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  students            students       @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([student_id, course_id, category_id, quarter, academic_year_id], map: "uk_competency_quarter_average")
+  @@index([academic_year_id], map: "idx_cqa_academic_year")
+  @@index([category_id], map: "idx_cqa_category")
+  @@index([course_id], map: "idx_cqa_course")
+  @@index([quarter], map: "idx_cqa_quarter")
+  @@index([student_id], map: "idx_cqa_student")
+}
