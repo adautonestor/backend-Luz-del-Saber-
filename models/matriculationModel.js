@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const { validateStudentHasParent } = require('./studentsModel');
+const { getTodayLima } = require('../utils/dateTime');
 
 const getAllMatriculations = async (filters = {}) => {
   let query = `
@@ -130,7 +131,7 @@ const createMatriculation = async (data, userId) => {
   const result = await pool.query(
     `INSERT INTO matriculation (student_id, academic_year_id, level_id, grade_id, section_id, enrollment_date, status, observations, contract_file_path, user_id_registration, date_time_registration)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP) RETURNING *`,
-    [student_id, academic_year_id, level_id, grade_id, section_id, enrollment_date || new Date(), status || 'pending', observations, contract_file_path || null, userId]
+    [student_id, academic_year_id, level_id, grade_id, section_id, enrollment_date || getTodayLima(), status || 'pending', observations, contract_file_path || null, userId]
   );
   return result.rows[0];
 };
@@ -260,7 +261,7 @@ const createMatriculationWithTransaction = async (data, paymentSchedule = [], us
     const matriculationResult = await client.query(
       `INSERT INTO matriculation (student_id, academic_year_id, level_id, grade_id, section_id, enrollment_date, status, observations, contract_file_path, user_id_registration, date_time_registration)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP) RETURNING *`,
-      [student_id, academic_year_id, level_id, grade_id, section_id, enrollment_date || new Date(), status || 'active', observations, contract_file_path || null, userId]
+      [student_id, academic_year_id, level_id, grade_id, section_id, enrollment_date || getTodayLima(), status || 'active', observations, contract_file_path || null, userId]
     )
 
     const newMatriculation = matriculationResult.rows[0]

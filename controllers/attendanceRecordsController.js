@@ -9,9 +9,9 @@ const getAll = async (req, res) => {
   try {
     const filters = {
       student_id: req.query.student_id,
-      fecha: req.query.fecha,
-      fecha_inicio: req.query.fecha_inicio,
-      fecha_fin: req.query.fecha_fin
+      date: req.query.date || req.query.fecha,
+      start_date: req.query.start_date || req.query.fecha_inicio,
+      end_date: req.query.end_date || req.query.fecha_fin
     };
     const records = await getAllAttendanceRecords(filters);
     res.json({ success: true, data: records, total: records.length });
@@ -148,11 +148,18 @@ const getNextAllowedRegistration = (existingRecord) => {
  */
 const smartScan = async (req, res) => {
   try {
-    const { code, mode = 'auto' } = req.body; // mode: 'auto' | 'entrada' | 'salida'
+    const { code: rawCode, mode = 'auto' } = req.body; // mode: 'auto' | 'entrada' | 'salida'
 
-    if (!code) {
+    if (!rawCode) {
       return res.status(400).json({ success: false, error: 'Debe proporcionar un DNI' });
     }
+
+    // Limpiar el código escaneado: extraer solo dígitos del DNI (8 dígitos)
+    // Los códigos de barras de DNI físicos pueden contener caracteres extra
+    const cleaned = String(rawCode).trim();
+    // Intentar extraer exactamente 8 dígitos consecutivos (formato DNI peruano)
+    const dniMatch = cleaned.match(/\d{8}/);
+    const code = dniMatch ? dniMatch[0] : cleaned;
 
     // 1. Buscar estudiante por DNI (código de barras del DNI físico)
     const student = await findStudentByDni(code);

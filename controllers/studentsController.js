@@ -133,7 +133,7 @@ const create = async (req, res) => {
     // Validaciones básicas (el code se generará automáticamente en el modelo)
     const { barcode, first_names, last_names, dni, birth_date, gender } = req.body;
 
-    if (!barcode || !first_names || !last_names || !dni || !birth_date || !gender) {
+    if (!barcode || !first_names || !dni || !birth_date || !gender) {
       return res.status(400).json({
         success: false,
         error: 'Faltan campos requeridos'

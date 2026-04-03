@@ -1161,7 +1161,7 @@ model students {
   code                        String                        @unique @db.VarChar(50)
   barcode                     String                        @unique @db.VarChar(255)
   first_names                 String                        @db.VarChar(255)
-  last_names                  String                        @db.VarChar(255)
+  last_names                  String?                       @db.VarChar(255)
   paternal_last_name          String?                       @db.VarChar(100)
   maternal_last_name          String?                       @db.VarChar(100)
   dni                         String                        @unique @db.VarChar(12)

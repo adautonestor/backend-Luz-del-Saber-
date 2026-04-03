@@ -3,6 +3,8 @@ const pool = require('../config/db');
 const getAllPaymentIntentions = async (filters = {}) => {
   let query = `
     SELECT pi.*, s.first_names AS student_first_names, s.last_names AS student_last_names,
+           s.paternal_last_name AS student_paternal_last_name,
+           s.maternal_last_name AS student_maternal_last_name,
            u.first_name AS parent_first_names, u.last_names AS parent_last_names,
            po.total_amount AS obligation_amount
     FROM payment_intentions pi
@@ -40,6 +42,8 @@ const getAllPaymentIntentions = async (filters = {}) => {
 const getPaymentIntentionById = async (id) => {
   const query = `
     SELECT pi.*, s.first_names AS student_first_names, s.last_names AS student_last_names,
+           s.paternal_last_name AS student_paternal_last_name,
+           s.maternal_last_name AS student_maternal_last_name,
            u.first_name AS parent_first_names, u.last_names AS parent_last_names
     FROM payment_intentions pi
     INNER JOIN students s ON pi.student_id = s.id

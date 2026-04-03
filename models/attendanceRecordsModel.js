@@ -7,6 +7,8 @@ const getAllAttendanceRecords = async (filters = {}) => {
     SELECT ar.*,
            s.first_names AS student_first_names,
            s.last_names AS student_last_names,
+           s.paternal_last_name AS student_paternal_last_name,
+           s.maternal_last_name AS student_maternal_last_name,
            s.code AS student_code,
            s.dni,
            s.level_id,

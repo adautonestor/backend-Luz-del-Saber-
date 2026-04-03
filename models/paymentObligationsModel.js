@@ -8,6 +8,8 @@ const getAllPaymentObligations = async (filters = {}) => {
            (po.status = 'exonerado') AS exonerado,
            s.first_names AS student_first_names,
            s.last_names AS student_last_names,
+           s.paternal_last_name AS student_paternal_last_name,
+           s.maternal_last_name AS student_maternal_last_name,
            s.code AS student_code,
            l.name AS level_name,
            l.name AS nivel,
@@ -73,6 +75,8 @@ const getPaymentObligationById = async (id) => {
            po.last_payment_date AS payment_date,
            (po.status = 'exonerado') AS exonerado,
            s.first_names AS student_first_names, s.last_names AS student_last_names,
+           s.paternal_last_name AS student_paternal_last_name,
+           s.maternal_last_name AS student_maternal_last_name,
            pc.name AS concept_name, pc.description AS concept_description
     FROM payment_obligations po
     INNER JOIN students s ON po.student_id = s.id
@@ -276,11 +280,13 @@ const getObligationsByConcept = async (conceptId) => {
            (po.status = 'exonerado') AS exonerado,
            s.first_names AS student_first_names,
            s.last_names AS student_last_names,
+           s.paternal_last_name AS student_paternal_last_name,
+           s.maternal_last_name AS student_maternal_last_name,
            s.code AS student_code
     FROM payment_obligations po
     INNER JOIN students s ON po.student_id = s.id
     WHERE po.concept_id = $1 AND po.status != 'deleted'
-    ORDER BY s.last_names, s.first_names, po.due_date
+    ORDER BY s.paternal_last_name, s.maternal_last_name, s.first_names, po.due_date
   `;
 
   const result = await pool.query(query, [conceptId]);

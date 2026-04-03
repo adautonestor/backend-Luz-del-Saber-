@@ -3,6 +3,8 @@ const pool = require('../config/db');
 const getAllPaymentRecords = async (filters = {}) => {
   let query = `
     SELECT pr.*, s.first_names AS student_first_names, s.last_names AS student_last_names,
+           s.paternal_last_name AS student_paternal_last_name,
+           s.maternal_last_name AS student_maternal_last_name,
            pc.name AS concept_name,
            u.first_name AS registered_by
     FROM payment_records pr
@@ -40,6 +42,8 @@ const getAllPaymentRecords = async (filters = {}) => {
 const getPaymentRecordById = async (id) => {
   const query = `
     SELECT pr.*, s.first_names AS student_first_names, s.last_names AS student_last_names,
+           s.paternal_last_name AS student_paternal_last_name,
+           s.maternal_last_name AS student_maternal_last_name,
            pc.name AS concept_name
     FROM payment_records pr
     INNER JOIN students s ON pr.student_id = s.id

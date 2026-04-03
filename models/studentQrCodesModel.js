@@ -65,8 +65,8 @@ const findStudentByDni = async (dni) => {
     LEFT JOIN levels l ON s.level_id = l.id
     LEFT JOIN grades g ON s.grade_id = g.id
     LEFT JOIN sections sec ON s.section_id = sec.id
-    INNER JOIN academic_years ay ON s.academic_year_id = ay.id AND ay.status = 'active'
-    WHERE s.dni = $1 AND s.status = 'enrolled'
+    LEFT JOIN academic_years ay ON s.academic_year_id = ay.id AND ay.status = 'active'
+    WHERE s.dni = $1 AND s.status IN ('enrolled', 'active')
     LIMIT 1
   `;
   const result = await pool.query(query, [dni]);

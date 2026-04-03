@@ -27,7 +27,7 @@ const generateCommunicationKey = (filename) => {
 
 const getAll = async (req, res) => {
   try {
-    const filters = { type: req.query.type, status: req.query.status, prioridad: req.query.prioridad };
+    const filters = { type: req.query.type, status: req.query.status, priority: req.query.priority };
     const communications = await getAllCommunications(filters);
     res.json({ success: true, data: communications, total: communications.length });
   } catch (error) {
