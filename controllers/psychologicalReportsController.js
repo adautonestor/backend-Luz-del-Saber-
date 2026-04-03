@@ -136,12 +136,15 @@ const create = async (req, res) => {
       console.log(`📤 [PSYCH-REPORTS] Guardado localmente: ${storedPath}`);
     }
 
+    // Corregir encoding del nombre original (multer decodifica como latin1)
+    const originalFileName = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+
     // Preparar datos para guardar en BD
     const reportData = {
       student_id: parseInt(student_id),
       academic_year: academic_year,
       issue_date: issue_date || new Date().toISOString().split('T')[0],
-      file_name: req.file.originalname,
+      file_name: originalFileName,
       file_path: storedPath,
       file_size: req.file.size,
       observations: observations || null
@@ -199,7 +202,7 @@ const update = async (req, res) => {
         updateData.file_path = `uploads/psychological-reports/${req.file.filename}`;
       }
 
-      updateData.file_name = req.file.originalname;
+      updateData.file_name = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
       updateData.file_size = req.file.size;
 
       console.log(`📤 [PSYCH-REPORTS] Nuevo archivo actualizado: ${updateData.file_path}`);

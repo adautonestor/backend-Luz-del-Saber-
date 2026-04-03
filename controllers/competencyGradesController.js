@@ -34,10 +34,10 @@ const getAll = async (req, res) => {
   try {
     const filters = {
       student_id: req.query.student_id,
-      curso_id: req.query.curso_id,
-      competencia_id: req.query.competencia_id,
+      course_id: req.query.course_id,
+      competency_id: req.query.competency_id,
       quarter: req.query.quarter,
-      profesor_id: req.query.profesor_id
+      teacher_id: req.query.teacher_id
     };
     const grades = await getAllCompetencyGrades(filters);
     res.json({ success: true, data: grades, total: grades.length });

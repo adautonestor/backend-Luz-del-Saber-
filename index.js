@@ -43,7 +43,6 @@ const paymentRecordsRoutes = require('./routes/paymentRecordsRoutes');
 const discountConfigsRoutes = require('./routes/discountConfigsRoutes');
 const reportCardVisibilityRoutes = require('./routes/reportCardVisibilityRoutes');
 const academicCalendarRoutes = require('./routes/academicCalendarRoutes');
-const competencyAveragesRoutes = require('./routes/competencyAveragesRoutes');
 const parentMeetingsRoutes = require('./routes/parentMeetingsRoutes');
 const meetingAttendancesRoutes = require('./routes/meetingAttendancesRoutes');
 const psychologicalReportsRoutes = require('./routes/psychologicalReportsRoutes');
@@ -140,8 +139,7 @@ app.use('/api/discount-configs', discountConfigsRoutes);
 app.use('/api/report-card-visibility', reportCardVisibilityRoutes);
 app.use('/api/academic-calendar', academicCalendarRoutes);
 
-// Rutas de Promedios y Reuniones
-app.use('/api/competency-averages', competencyAveragesRoutes);
+// Rutas de Reuniones
 app.use('/api/parent-meetings', parentMeetingsRoutes);
 app.use('/api/meeting-attendances', meetingAttendancesRoutes);
 
